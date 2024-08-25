@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(150)
+  description String       @db.Text
+  price       Int
+  details     SaleDetail[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("products")
+}
+
+model SaleDetail {
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id Int
+  sale       Sale    @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+  sale_id    Int
+  quantity   Int
+  price      Int
+
+  @@id([product_id, sale_id])
+  @@map("sale_details")
+}
+
+model Sale {
+  id               Int          @id @default(autoincrement())
+  transaction_date DateTime     @default(now())
+  invoice_id       String       @unique @db.VarChar(120)
+  customer_name    String       @db.VarChar(150)
+  tax              Decimal      @db.Decimal(10, 6)
+  discount         Decimal      @db.Decimal(10, 6)
+  details          SaleDetail[]
+
+  updated_at DateTime @updatedAt
+
+  @@map("sales")
+}
